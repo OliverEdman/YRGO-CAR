@@ -1,0 +1,12 @@
+*.o
+*.elf
+*.bin
+*.map
+*.list
+build/
+compile_commands.json
+
+.cache/
+.clangd/
+
+
