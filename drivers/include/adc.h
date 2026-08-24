@@ -2,7 +2,6 @@
  *
  * @brief Interface for the ADC driver.
  */
- 
 
 #pragma once
 

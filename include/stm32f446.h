@@ -1,8 +1,7 @@
 /*
  * @brief This file shows all memory adresses for the Peripherals
- * 
+ *
  */
-
 
 #pragma once
 

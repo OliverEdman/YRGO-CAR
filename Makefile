@@ -8,11 +8,13 @@ BUILD_DIR = build
 INC = -I drivers/include \
       -I modules/include \
       -I app \
+	  -I arch \
+	  -I include
       
 
 SRCS += arch/startup.c
 SRCS += app/main.c
-#SRCS += drivers/source/gpio.c
+SRCS += drivers/source/gpio.c
 #SRCS += drivers/source/timer.c
 #SRCS += drivers/source/pwm.c
 #SRCS += drivers/source/adc.c

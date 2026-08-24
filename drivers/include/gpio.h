@@ -1,91 +1,58 @@
-/**
- * @brief GPIO driver for ATmega328p.
- */
-#ifndef GPIO_H_
-#define GPIO_H_
+#pragma once
 
-#include <stdbool.h>
 #include <stdint.h>
+#include <stdbool.h>
+
+#define GPIO_MAX_INSTANCES 16U
+
+#define GPIO_MODE_INPUT 0x0UL
+#define GPIO_MODE_OUTPUT 0x1UL
+#define GPIO_MODE_ALT 0x2UL
+#define GPIO_MODE_ANALOG 0x3UL
+
+#define GPIO_PUPD_NONE 0x0UL
+#define GPIO_PUPD_UP 0x1UL
+#define GPIO_PUPD_DOWN 0x2UL
+
+struct gpio;
 
 /**
- * @brief Enumeration of GPIO directions.
+ * gpio_new() - Creates a new GPIO instance.
+ * @port: Pointer to the MCU GPIO peripheral instance.
+ * @pin: Pin number on the MCU.
+ * @mode: Desired GPIO mode.
+ * @return: A pointer to a newly allocated &struct gpio instance, or NULL on
+ * failure.
  */
-typedef enum gpio_direction {
-	GPIO_DIRECTION_INPUT, ///< GPIO input without internal pull-up resistor
-			      ///< enabled.
-	GPIO_DIRECTION_INPUT_PULLUP, ///< GPIO input with internal pull-up
-				     ///< resistor enabled.
-	GPIO_DIRECTION_OUTPUT, ///< GPIO output.
-} gpio_direction_t;
+struct gpio *gpio_new(void *port, uint8_t pin, uint32_t mode);
 
 /**
- * @brief GPIO driver structure.
+ * gpio_delete() - Frees a GPIO instance and nullifies the pointer.
+ * @self: Double pointer to the GPIO object to be freed.
+ *
+ * Sets the pointer to NULL after deallocation to prevent dangling pointers.
  */
-typedef struct gpio gpio_t;
+void gpio_delete(struct gpio **self);
 
 /**
- * @brief Create a new GPIO.
- *
- * @param[in] pin Arduino pin number.
- * @param[in] direction Data direction.
- * @param[in] callback Optional callback. Pass NULL if none.
- *
- * @return The initialized GPIO on success, a nullptr otherwise.
+ * gpio_write() - Sets the state of a GPIO pin.
+ * @self: Pointer to the GPIO object.
+ * @state: Boolean value (true for high, false for low).
  */
-gpio_t *gpio_new(uint8_t pin, gpio_direction_t direction,
-		 void (*callback)(void));
+uint8_t gpio_write(struct gpio *self, bool state);
 
 /**
- * @brief Delete GPIO instance.
- *
- *        Release resources allocated for the GPIO.
- *        Set the associated pointer to null.
- *
- * @param[in, out] self Reference to the GPIO instance.
+ * gpio_read() - Reads the state of a GPIO pin.
+ * @self: Pointer to the GPIO object.
+ * @return: true if the pin is high, false if the pin is low.
+ * Note: If self is NULL, default behavior is false.
  */
-void gpio_delete(gpio_t **self);
+bool gpio_read(const struct gpio *self);
 
 /**
- * @brief Set state of the GPIO.
- *
- * @note This operation is only supported for outputs.
- *
- * @param[in, out] self Pointer to the GPIO.
- * @param[in] state GPIO state (true = enabled, false = disabled).
+ * gpio_toggle() - Toggles the state of a GPIO pin.
+ * @self: Pointer to the GPIO object.
+ * @return: 0 on success, negative error code on failure.
  */
-void gpio_write(gpio_t *self, bool state);
-
-/**
- * @brief Read the state of the GPIO.
- *
- * @param[in] self Pointer to the GPIO.
- *
- * @return True if the GPIO is enabled, false otherwise.
- */
-bool gpio_read(const gpio_t *self);
-
-/**
- * @brief Toggle state of the GPIO.
- *
- * @note This operation is only supported for outputs.
- *
- * @param[in, out] self Pointer to the GPIO.
- */
-void gpio_toggle(gpio_t *self);
-
-/**
- * @brief Enable pin change interrupt for the given GPIO.
- *
- * @param[in, out] self Pointer to the GPIO.
- */
-void gpio_enable_pci(gpio_t *self);
-
-/**
- * @brief Disable pin change interrupts for the given GPIO.
- *
- * @param[in, out] self Pointer to the GPIO.
- * @param[in] disable_port True to disable interrupts on the entire I/O port.
- */
-void gpio_disable_pci(gpio_t *self, bool disable_port);
-
-#endif /* GPIO_H_ */
+uint8_t gpio_toggle(struct gpio *self);
+;
