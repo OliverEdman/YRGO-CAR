@@ -1,5 +1,10 @@
-#ifndef STM32F446XX_H
-#define STM32F446XX_H
+/*
+ * @brief This file shows all memory adresses for the Peripherals
+ * 
+ */
+
+
+#pragma once
 
 #include <stdint.h>
 
@@ -80,5 +85,3 @@ typedef struct {
 	volatile uint32_t LCKR;	   ///< Offset 0x1C
 	volatile uint32_t AFR[2];  ///< Offset 0x20
 } GPIO_TypeDef;
-
-#endif /* STM32F446XX_H */
