@@ -8,6 +8,8 @@
 
 #include <stddef.h>
 
+#define GPIO_MAX_INSTANCES 16
+
 struct gpio {
     struct gpio_registers *port;
     uint8_t pin;
@@ -40,7 +42,7 @@ static void gpio_enable_clock(const struct gpio_registers *port)
     }
 }
 
-struct gpio *gpio_new(void *port, uint8_t pin, uint32_t mode, uint32_t pupd, uint8_t af)
+struct gpio *gpio_new(struct gpio_registers *port, uint8_t pin, uint32_t mode, uint32_t pupd, uint8_t af)
 {
     if (port == NULL || pin > 15U) {
         return NULL;
@@ -63,18 +65,18 @@ struct gpio *gpio_new(void *port, uint8_t pin, uint32_t mode, uint32_t pupd, uin
     self->pin = pin;
     self->in_use = true;
 
-    /* 1. Aktivera peripheralklockan i RCC */
+    /* Aktivera peripheralklockan i RCC */
     gpio_enable_clock(self->port);
 
-    /* 2. Konfigurera Mode (MODER: 2 bitar per pinn) */
+    /* Konfigurera Mode (MODER: 2 bitar per pinn) */
     self->port->MODER &= ~(0x3UL << (pin * 2U));
     self->port->MODER |= ((mode & 0x3UL) << (pin * 2U));
 
-    /* 3. Konfigurera Pull-up/Pull-down (PUPDR: 2 bitar per pinn) */
+    /* Konfigurera Pull-up/Pull-down (PUPDR: 2 bitar per pinn) */
     self->port->PUPDR &= ~(0x3UL << (pin * 2U));
     self->port->PUPDR |= ((pupd & 0x3UL) << (pin * 2U));
 
-    /* 4. Konfigurera Alternate Function om mode == GPIO_MODE_ALT */
+    /* Konfigurera Alternate Function om mode == GPIO_MODE_ALT */
     if ((mode & 0x3UL) == GPIO_MODE_ALT) {
         uint8_t af_index = pin / 8U;      /* 0 för pin 0-7 (AFRL), 1 för pin 8-15 (AFRH) */
         uint8_t af_shift = (pin % 8U) * 4U; /* 4 bitar per pinn */
