@@ -1,61 +1,65 @@
 #include <stdint.h>
 
-/*
- * "extern" means these symbols are defined outside this file (in stm32f446.ld)
- */
 extern int main(void);
 void Reset_Handler(void);
+void Default_Handler(void);
 
-/* Import the exact memory boundary addresses from the Linker Script */
-extern uint32_t _estack; /* Top of RAM, where the stack begins */
-extern uint32_t _sidata; /* Start of .data initialization values in FLASH */
-extern uint32_t _sdata;	 /* Start of .data section in RAM */
-extern uint32_t _edata;	 /* End of .data section in RAM */
-extern uint32_t _sbss;	 /* Start of .bss section in RAM */
-extern uint32_t _ebss;	 /* End of .bss section in RAM */
+/* Weak alias so SysTick_Handler in systick.c overrides this */
+void SysTick_Handler(void) __attribute__((weak, alias("Default_Handler")));
 
-/* Struct that matches exactly what the Cortex-M4 hardware expects at boot */
-typedef struct {
-	uint32_t *initial_sp_value;  /* Address for Stack Pointer (SP) */
-	void (*reset_handler)(void); /* Address to the first instruction (PC) */
-} VectorTable;
+/* Linker script symbols */
+extern uint32_t _estack;
+extern uint32_t _sidata;
+extern uint32_t _sdata;
+extern uint32_t _edata;
+extern uint32_t _sbss;
+extern uint32_t _ebss;
 
-/**
- * __attribute__((section(".isr_vector")))
- * We force the compiler to place this specific structure at the very beginning
- * of the FLASH memory (0x08000000) so the CPU finds it immediately at power-on.
+/* 
+ * Hardware-aligned Vector Table Array.
+ * Vector 0 is the initial Stack Pointer (_estack address casted to function pointer).
+ * Vector 15 is SysTick.
  */
-__attribute__((section(".isr_vector"))) const VectorTable vector_table = {
-	.initial_sp_value =
-		&_estack, /* Step 1: Give the processor its workspace (Stack) */
-	.reset_handler =
-		Reset_Handler /* Step 2: Tell it where the execution starts */
+__attribute__((section(".isr_vector")))
+void (* const vector_table[])(void) = {
+    (void (*)(void))&_estack, /* 0: Initial Stack Pointer (0x20020000) */
+    Reset_Handler,             /* 1: Reset Handler */
+    Default_Handler,           /* 2: NMI */
+    Default_Handler,           /* 3: HardFault */
+    Default_Handler,           /* 4: MemManage */
+    Default_Handler,           /* 5: BusFault */
+    Default_Handler,           /* 6: UsageFault */
+    0, 0, 0, 0,                /* 7-10: Reserved */
+    Default_Handler,           /* 11: SVCall */
+    Default_Handler,           /* 12: Debug Monitor */
+    0,                         /* 13: Reserved */
+    Default_Handler,           /* 14: PendSV */
+    SysTick_Handler            /* 15: SysTick Handler */
 };
 
-/**
- * This is the very first function that runs in the kernel.
- * It functions as a bridge between the raw hardware and the C environment.
- */
 void Reset_Handler(void)
 {
-	/* Copy initialized global variables (.data) from FLASH to RAM */
-	uint32_t *src = &_sidata;
-	uint32_t *dst = &_sdata;
-	while (dst < &_edata) {
-		*dst++ = *src++;
-	}
+    /* Copy .data section from FLASH to RAM */
+    uint32_t *src = &_sidata;
+    uint32_t *dst = &_sdata;
+    while (dst < &_edata) {
+        *dst++ = *src++;
+    }
 
-	/* Clear uninitialized global variables (.bss) in RAM to zero */
-	dst = &_sbss;
-	while (dst < &_ebss) {
-		*dst++ = 0;
-	}
+    /* Zero-initialize .bss section in RAM */
+    dst = &_sbss;
+    while (dst < &_ebss) {
+        *dst++ = 0;
+    }
 
-	/* The C environment is now 100% ready. Jump to your main application!
-	 */
-	main();
+    /* Call the application entry point */
+    main();
 
-	/* If main, should return, trap the CPU here forever */
-	while (1)
-		;
+    /* Trap CPU if main returns */
+    while (1);
+}
+
+void Default_Handler(void)
+{
+    while (1);
 }
