@@ -8,9 +8,8 @@ BUILD_DIR = build
 INC = -I drivers/include \
       -I modules/include \
       -I app \
-	  -I arch \
-	  -I include
-      
+      -I arch \
+      -I include
 
 SRCS += arch/startup.c
 SRCS += app/main.c
@@ -21,13 +20,10 @@ SRCS += drivers/source/gpio.c
 #SRCS += drivers/source/spi.c
 #SRCS += drivers/source/uart.c
 
-
 OBJS = $(addprefix $(BUILD_DIR)/, $(SRCS:.c=.o))
-
 
 CFLAGS = -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 \
          -O2 -g -Wall -Wextra -Werror -Wshadow -Wundef -Wconversion -std=c99 $(INC)
-
 
 LDFLAGS = -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 \
           -Tarch/stm32f446re.ld --specs=nano.specs -nostartfiles -Wl,--gc-sections
@@ -38,6 +34,8 @@ all: $(BUILD_DIR)/$(TARGET).bin $(BUILD_DIR)/$(TARGET).list
 	@echo " YRGO-CAR built successfully!"
 	@echo "========================================="
 	@echo ""
+
+build: all
 
 $(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(dir $@)
@@ -81,4 +79,4 @@ flash: $(BUILD_DIR)/$(TARGET).bin
 	echo "  FLASH: $$FLASH_USED / $$FLASH_TOTAL bytes [$$FLASH_PCT% Used]" ; \
 	echo "  SRAM:  $$RAM_USED / $$RAM_TOTAL bytes [$$RAM_PCT% Used]"
 
-.PHONY: all format clean flash
+.PHONY: all build format clean flash
