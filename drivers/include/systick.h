@@ -8,6 +8,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /**
  * @brief Initializes the ARM Cortex-M4 SysTick timer.
@@ -17,7 +18,7 @@
  *
  * @param sys_clk_hz Core clock frequency in Hz (Example: 16000000UL for 16 MHz).
  */
-void systick_init(uint32_t sys_clk_hz);
+bool systick_init(uint32_t sys_clk_hz);
 
 /**
  * @brief Gets the elapsed time since system boot.

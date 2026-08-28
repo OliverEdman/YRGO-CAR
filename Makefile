@@ -14,6 +14,7 @@ INC = -I drivers/include \
 SRCS += arch/startup.c
 SRCS += app/main.c
 SRCS += drivers/source/gpio.c
+SRCS += drivers/source/systick.c
 #SRCS += drivers/source/timer.c
 #SRCS += drivers/source/pwm.c
 #SRCS += drivers/source/adc.c
