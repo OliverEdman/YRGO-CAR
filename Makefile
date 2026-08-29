@@ -11,20 +11,26 @@ INC = -I drivers/include \
       -I arch \
       -I include
 
-SRCS += arch/startup.c
-SRCS += app/main.c
-SRCS += drivers/source/gpio.c
-SRCS += drivers/source/systick.c
-#SRCS += drivers/source/timer.c
-#SRCS += drivers/source/pwm.c
-#SRCS += drivers/source/adc.c
-#SRCS += drivers/source/spi.c
-#SRCS += drivers/source/uart.c
+# Separera C-källfiler och Assembler-källfiler
+C_SRCS += app/main.c
+C_SRCS += drivers/source/gpio.c
+C_SRCS += drivers/source/systick.c
+#C_SRCS += drivers/source/timer.c
+#C_SRCS += drivers/source/pwm.c
+#C_SRCS += drivers/source/adc.c
+#C_SRCS += drivers/source/spi.c
+#C_SRCS += drivers/source/uart.c
 
-OBJS = $(addprefix $(BUILD_DIR)/, $(SRCS:.c=.o))
+ASM_SRCS += arch/startup.s
+
+# Skapa objektfilslistor för både .c och .s
+OBJS = $(addprefix $(BUILD_DIR)/, $(C_SRCS:.c=.o))
+OBJS += $(addprefix $(BUILD_DIR)/, $(ASM_SRCS:.s=.o))
 
 CFLAGS = -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 \
          -O2 -g -Wall -Wextra -Werror -Wshadow -Wundef -Wconversion -std=c99 $(INC)
+
+ASMFLAGS = -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -g
 
 LDFLAGS = -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 \
           -Tarch/stm32f446re.ld --specs=nano.specs -nostartfiles -Wl,--gc-sections
@@ -38,9 +44,15 @@ all: $(BUILD_DIR)/$(TARGET).bin $(BUILD_DIR)/$(TARGET).list
 
 build: all
 
+# Regel för att kompilera C-filer
 $(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+# Regel för att kompilera Assembler-filer (.s)
+$(BUILD_DIR)/%.o: %.s
+	@mkdir -p $(dir $@)
+	$(CC) $(ASMFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJS)
 	$(CC) $(OBJS) $(LDFLAGS) -o $@

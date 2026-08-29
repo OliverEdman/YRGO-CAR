@@ -28,6 +28,25 @@
 .extern _sbss                @ Startadress i RAM för .bss-sektionen
 .extern _ebss                @ Slutadress i RAM för .bss-sektionen
 
+
+
+/* Makro för att sätta svaga alias till Default_Handler */
+.macro DECLARE_ISR name
+    .global \name
+    .weak \name
+    .thumb_func
+    .set \name, Default_Handler
+.endm
+
+DECLARE_ISR NMI_Handler
+DECLARE_ISR HardFault_Handler
+DECLARE_ISR MemManage_Handler
+DECLARE_ISR BusFault_Handler
+DECLARE_ISR UsageFault_Handler
+DECLARE_ISR SVC_Handler
+DECLARE_ISR DebugMon_Handler
+DECLARE_ISR PendSV_Handler
+DECLARE_ISR SysTick_Handler
 /*
  * ============================================================================
  * VEKTORTABELL (ISR Vector Table)
@@ -122,7 +141,7 @@ zero_bss_loop:
 call_main:
     BL      main             @ Anropa C-funktionen main()
 
-/* Om vårat main program retunerar 0 hamnar vi här och fastar i en oädnlig loop.*/
+/* Om vårat main program retunerar 0 hamnar vi här och fastnar i en oädnlig loop.*/
 Default_Loop:
     B       Default_Loop
 

@@ -26,7 +26,7 @@ int main(void)
     uint32_t last_toggle = systick_get_ticks();
 
     while (1) {
-        if ((systick_get_ticks() - last_toggle) >= 100U) {
+        if ((systick_get_ticks() - last_toggle) >= 500U) {
             gpio_toggle(led);
             last_toggle = systick_get_ticks();
         }
